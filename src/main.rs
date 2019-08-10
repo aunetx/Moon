@@ -5,12 +5,106 @@ use std::process::exit;
 
 const FILENAME: &str = "tables.moon";
 const DEBUG: bool = true;
+const MAX_ITERATIONS: i32 = 10_000;
 
 fn main() {
-    // On récupère le contenu du fichier Moon
+    // Preproc
+    if DEBUG {
+        println!("\n----------------------------------------------");
+        println!("                    PREPROC                    \n");
+    }
     let content = get_file();
     let compute_program = get_transformed_program(content);
-    let flags = get_flags(compute_program);
+    let flags = get_flags(&compute_program);
+
+    // Runtime
+    if DEBUG {
+        println!("\n----------------------------------------------");
+        println!("                    RUNTIME                    \n");
+    }
+    run_program(compute_program, flags);
+    if DEBUG {
+        println!("\n----------------------------------------------");
+        println!(" Program {:?} finished without error ", FILENAME)
+    }
+}
+
+//------------------ RUNTIME ------------------\\
+
+fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
+    let mut prog_line: usize = 0;
+    let mut iteration = 0;
+    let max_line = program.len();
+
+    loop {
+        iteration += 1;
+        if iteration == MAX_ITERATIONS {
+            eprintln!("{} iterations, closing the process", iteration);
+            exit(1)
+        }
+        prog_line = compute(&program[prog_line], &flags, prog_line);
+        if DEBUG {
+            println!(
+                "|                      iteration : {}  next line : {}",
+                iteration, prog_line
+            );
+        }
+
+        if prog_line >= max_line {
+            break;
+        }
+    }
+}
+
+fn compute(line: &Vec<String>, flags: &(Vec<String>, Vec<i32>), line_number: usize) -> usize {
+    if DEBUG {
+        if line.len() == 2 {
+            println!("{}---> {} {}", line_number, line[0], line[1]);
+        } else {
+            println!("{}---> {} {} {}", line_number, line[0], line[1], line[2]);
+        }
+    }
+    if line[0] == "var" {
+        instruction_nll(line_number)
+    } else if line[0] == "set" {
+        instruction_nll(line_number)
+    } else if line[0] == "add" {
+        instruction_nll(line_number)
+    } else if line[0] == "sub" {
+        instruction_nll(line_number)
+    } else if line[0] == "mul" {
+        instruction_nll(line_number)
+    } else if line[0] == "div" {
+        instruction_nll(line_number)
+    } else if line[0] == "rst" {
+        instruction_nll(line_number)
+    } else if line[0] == "ret" {
+        instruction_nll(line_number)
+    } else if line[0] == "flg" {
+        instruction_nll(line_number)
+    } else if line[0] == "gto" {
+        instruction_nll(line_number)
+    } else if line[0] == "jmp" {
+        instruction_nll(line_number)
+    } else if line[0] == "jne" {
+        instruction_nll(line_number)
+    } else if line[0] == "ctp" {
+        instruction_nll(line_number)
+    } else if line[0] == "prt" {
+        instruction_nll(line_number)
+    } else if line[0] == "nll" {
+        instruction_nll(line_number)
+    } else {
+        eprintln!(
+            "Error : unexpected instruction {} line {}",
+            line[0], line_number
+        );
+        exit(1)
+    }
+}
+
+fn instruction_nll(line_number: usize) -> usize {
+    line_number + 1
 }
 
 //------------------ PREPROC ------------------\\
@@ -96,7 +190,7 @@ fn get_transformed_line(line: String, line_number: i32) -> Vec<String> {
     }
 }
 
-fn get_flags(program: Vec<Vec<String>>) -> (Vec<String>, Vec<i32>) {
+fn get_flags(program: &Vec<Vec<String>>) -> (Vec<String>, Vec<i32>) {
     let mut flags_names: Vec<String> = Vec::new();
     let mut flags_locat: Vec<i32> = Vec::new();
     let mut lnb = 0;
