@@ -14,17 +14,26 @@ fn main() {
         println!("                    PREPROC                    \n");
     }
     let content = get_file();
+    if DEBUG {
+        println!("✓ file {:?} loaded", FILENAME);
+    }
     let compute_program = get_transformed_program(content);
+    if DEBUG {
+        println!("✓ program read and transformed");
+    }
     let flags = get_flags(&compute_program);
+    if DEBUG {
+        println!("✓ list of flags made")
+    }
 
     // Runtime
     if DEBUG {
         println!("\n----------------------------------------------");
-        println!("                    RUNTIME                    \n");
+        println!("                    RUNTIME                    \n\n╖");
     }
     run_program(compute_program, flags);
     if DEBUG {
-        println!("\n----------------------------------------------");
+        println!("╜\n----------------------------------------------");
         println!(" Program {:?} finished without error ", FILENAME)
     }
 }
@@ -45,8 +54,8 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
         prog_line = compute(&program[prog_line], &flags, prog_line);
         if DEBUG {
             println!(
-                "|                      iteration : {}  next line : {}",
-                iteration, prog_line
+                "╟╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╎ it {}\n║",
+                iteration
             );
         }
 
@@ -59,47 +68,42 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
 fn compute(line: &Vec<String>, flags: &(Vec<String>, Vec<i32>), line_number: usize) -> usize {
     if DEBUG {
         if line.len() == 2 {
-            println!("{}---> {} {}", line_number, line[0], line[1]);
+            println!(
+                "╠═╡ line {} ╞══╡ {} ⇢ {}",
+                line_number, line[0], line[1]
+            );
         } else {
-            println!("{}---> {} {} {}", line_number, line[0], line[1], line[2]);
+            println!(
+                "╠═╡ line {} ╞══╡ {} ⇢ {}  {}",
+                line_number, line[0], line[1], line[2]
+            );
         }
     }
-    if line[0] == "var" {
-        instruction_nll(line_number)
-    } else if line[0] == "set" {
-        instruction_nll(line_number)
-    } else if line[0] == "add" {
-        instruction_nll(line_number)
-    } else if line[0] == "sub" {
-        instruction_nll(line_number)
-    } else if line[0] == "mul" {
-        instruction_nll(line_number)
-    } else if line[0] == "div" {
-        instruction_nll(line_number)
-    } else if line[0] == "rst" {
-        instruction_nll(line_number)
-    } else if line[0] == "ret" {
-        instruction_nll(line_number)
-    } else if line[0] == "flg" {
-        instruction_nll(line_number)
-    } else if line[0] == "gto" {
-        instruction_nll(line_number)
-    } else if line[0] == "jmp" {
-        instruction_nll(line_number)
-    } else if line[0] == "jne" {
-        instruction_nll(line_number)
-    } else if line[0] == "ctp" {
-        instruction_nll(line_number)
-    } else if line[0] == "prt" {
-        instruction_nll(line_number)
-    } else if line[0] == "nll" {
-        instruction_nll(line_number)
-    } else {
-        eprintln!(
-            "Error : unexpected instruction {} line {}",
-            line[0], line_number
-        );
-        exit(1)
+
+    // Matching instruction and executing corresponding function
+    match line[0].as_str() {
+        "var" => instruction_nll(line_number),
+        "set" => instruction_nll(line_number),
+        "add" => instruction_nll(line_number),
+        "sub" => instruction_nll(line_number),
+        "mul" => instruction_nll(line_number),
+        "div" => instruction_nll(line_number),
+        "rst" => instruction_nll(line_number),
+        "ret" => instruction_nll(line_number),
+        "flg" => instruction_nll(line_number),
+        "gto" => instruction_nll(line_number),
+        "jmp" => instruction_nll(line_number),
+        "jne" => instruction_nll(line_number),
+        "ctp" => instruction_nll(line_number),
+        "nll" => instruction_nll(line_number),
+        "prt" => instruction_nll(line_number),
+        _ => {
+            eprintln!(
+                "Error : unexpected instruction {} line {}",
+                line[0], line_number
+            );
+            exit(1)
+        }
     }
 }
 
@@ -140,13 +144,6 @@ fn get_transformed_program(content: String) -> Vec<Vec<String>> {
         line_number += 1;
         let str_line: String = line.to_string();
         let line = get_transformed_line(str_line, line_number);
-        if DEBUG {
-            if line.len() == 3 {
-                println!("{} {} {}", line[0], line[1], line[2]);
-            } else {
-                println!("{} {}", line[0], line[1]);
-            }
-        }
         compute_program.push(line);
     }
     compute_program
