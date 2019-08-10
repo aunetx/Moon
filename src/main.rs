@@ -4,9 +4,16 @@ use std::io::prelude::*;
 use std::process::exit;
 
 const FILENAME: &str = "tables.moon";
+const DEBUG: bool = true;
 
 fn main() {
     // On récupère le contenu du fichier Moon
+    let content = get_file();
+    let _compute_program = get_transformed_program(content);
+}
+
+// Rend le contenu du fichier FILENAME (const)
+fn get_file() -> String {
     let content = match open_file(FILENAME) {
         Ok(file) => file,
         Err(error) => {
@@ -14,22 +21,7 @@ fn main() {
             exit(1)
         }
     };
-
-    // On transforme le programme en un tableau de tuples
-    let program: Vec<&str> = content.split('\n').collect();
-
-    let mut line_number = 0;
-    for line in program {
-        line_number += 1;
-        let str_line: String = line.to_string();
-        let (ins, op1, op2) = get_transformed_line(str_line, line_number);
-        println!(
-            "Instruction : {i}\nOperand 1 : {o1}\nOperand 2 : {o2}",
-            i = ins,
-            o1 = op1,
-            o2 = op2
-        )
-    }
+    content
 }
 
 // Permet d'ouvrir un fichier donné
@@ -40,8 +32,31 @@ fn open_file(file_name: &str) -> io::Result<String> {
     Ok(content)
 }
 
-// Nous permet d'obtenir un tuple contenant instruction, opérande 1 et opérande 2 pour une ligne donnée (String)
-fn get_transformed_line(line: String, line_number: i32) -> (String, String, String) {
+fn get_transformed_program(content: String) -> Vec<Vec<String>> {
+    // On transforme le programme en un tableau de tuples
+    let program: Vec<&str> = content.split('\n').collect();
+
+    // On transforme "program" en un tableau de tableaux contenant ins, op1 (et op2)
+    let mut compute_program: Vec<Vec<String>> = Vec::new();
+    let mut line_number = 0;
+    for line in program {
+        line_number += 1;
+        let str_line: String = line.to_string();
+        let line = get_transformed_line(str_line, line_number);
+        if DEBUG {
+            if line.len() == 3 {
+                println!("{} {} {}", line[0], line[1], line[2]);
+            } else {
+                println!("{} {}", line[0], line[1]);
+            }
+        }
+        compute_program.push(line);
+    }
+    compute_program
+}
+
+// Nous permet d'obtenir un array contenant instruction, opérande 1 et opérande 2 pour une ligne donnée
+fn get_transformed_line(line: String, line_number: i32) -> Vec<String> {
     // On enlève les caractères en trop et on remplace les lignes nulles par nll:nll
     let mut line = line.replace(" ", "").replace("\n", "");
     if line.len() == 0 {
@@ -50,29 +65,30 @@ fn get_transformed_line(line: String, line_number: i32) -> (String, String, Stri
 
     // On split instruction / opérandes
     let splitted: Vec<&str> = line.split(':').collect();
+    // Notre résultat :
+    let mut trans_line: Vec<String> = Vec::new();
 
     // On vérifie qu'il n'y ait pas trop de séparateurs
     if splitted.len() != 2 || splitted[0].len() == 0 || splitted[1].len() == 0 {
         eprintln!("Error : incorrect syntax line {lnb}", lnb = line_number);
         exit(1);
     } else {
-        // On distingue maintenant instruction et opérandes
-        let instruction: String = splitted[0].to_string();
-        let operands: Vec<&str> = splitted[1].split(",").collect();
-        // On vérifie qu'op1 existe
-        let operand1 = if operands[0].len() != 0 {
-            String::from(operands[0])
-        } else {
+        // Instruction :
+        trans_line.push(splitted[0].to_string());
+        let splitted: Vec<&str> = splitted[1].split(",").collect();
+
+        // Opérande 1 :
+        if splitted[0].len() == 0 {
             eprintln!("Error : incorrect syntax line {lnb}", lnb = line_number);
             exit(1);
         };
-        // On donne une valeur quomcumquest à op2
-        let operand2 = if operands.len() == 2 {
-            String::from(operands[1])
-        } else {
-            String::new()
-        };
-        // On retourne le tuple
-        (instruction, operand1, operand2)
+        trans_line.push(splitted[0].to_string());
+
+        // Opérande 2 :
+        if splitted.len() == 2 {
+            trans_line.push(splitted[1].to_string());
+        }
+        // On retourne le tableau
+        return trans_line;
     }
 }
