@@ -9,8 +9,11 @@ const DEBUG: bool = true;
 fn main() {
     // On récupère le contenu du fichier Moon
     let content = get_file();
-    let _compute_program = get_transformed_program(content);
+    let compute_program = get_transformed_program(content);
+    let flags = get_flags(compute_program);
 }
+
+//------------------ PREPROC ------------------\\
 
 // Rend le contenu du fichier FILENAME (const)
 fn get_file() -> String {
@@ -34,7 +37,7 @@ fn open_file(file_name: &str) -> io::Result<String> {
 
 fn get_transformed_program(content: String) -> Vec<Vec<String>> {
     // On transforme le programme en un tableau de tuples
-    let program: Vec<&str> = content.split('\n').collect();
+    let program: Vec<&str> = content.lines().collect();
 
     // On transforme "program" en un tableau de tableaux contenant ins, op1 (et op2)
     let mut compute_program: Vec<Vec<String>> = Vec::new();
@@ -91,4 +94,18 @@ fn get_transformed_line(line: String, line_number: i32) -> Vec<String> {
         // On retourne le tableau
         return trans_line;
     }
+}
+
+fn get_flags(program: Vec<Vec<String>>) -> (Vec<String>, Vec<i32>) {
+    let mut flags_names: Vec<String> = Vec::new();
+    let mut flags_locat: Vec<i32> = Vec::new();
+    let mut lnb = 0;
+    for line in program {
+        if line[0] == "flg".to_string() {
+            flags_names.push(line[0].clone());
+            flags_locat.push(lnb);
+        }
+        lnb += 1;
+    }
+    (flags_names, flags_locat)
 }
