@@ -45,11 +45,11 @@ fn main() {
 mod mem;
 
 fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
-    let prog_line: usize = 0;
+    let mut prog_line: usize = 0;
     let mut iteration = 0;
     let max_line = program.len();
 
-    let memory: mem::Memory = mem::init_memory();
+    let mut memory: mem::Memory = mem::init_memory();
 
     loop {
         iteration += 1;
@@ -57,7 +57,9 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
             eprintln!("{} iterations, closing the process", iteration);
             exit(1)
         }
-        let (prog_line, memory) = compute(&program[prog_line], &flags, prog_line, memory.clone());
+        let result = compute(&program[prog_line], &flags, prog_line, memory);
+        prog_line = result.0;
+        memory = result.1;
         if DEBUG {
             println!(
                 "╟╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╎ it {}\n║",
@@ -91,11 +93,26 @@ fn compute(
         }
     }
 
-    // Matching instruction and executing corresponding function
+    //      Matching instruction and executing corresponding function
     let op1 = line[1].clone();
-    let op2 = line[2].clone();
+    // Check wether operand 2 exists
+    let (op2, one_op) = if line.len() == 3 {
+        (line[2].clone(), false)
+    } else {
+        ("".to_string(), true)
+    };
     match line[0].as_str() {
-        "var" => instruction_var(line_number, op1, op2, memory),
+        "var" => {
+            if one_op {
+                eprintln!(
+                    "Error : second operand does not exists line {}",
+                    line_number
+                );
+                exit(1)
+            } else {
+                instruction_var(line_number, op1, op2, memory)
+            }
+        }
         "set" => instruction_nll(line_number, memory),
         "add" => instruction_nll(line_number, memory),
         "sub" => instruction_nll(line_number, memory),
