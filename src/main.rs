@@ -40,10 +40,16 @@ fn main() {
 
 //------------------ RUNTIME ------------------\\
 
+// Memory creation
+#[path = "mem.rs"]
+mod mem;
+
 fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
-    let mut prog_line: usize = 0;
+    let prog_line: usize = 0;
     let mut iteration = 0;
     let max_line = program.len();
+
+    let memory: mem::Memory = mem::init_memory();
 
     loop {
         iteration += 1;
@@ -51,7 +57,7 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
             eprintln!("{} iterations, closing the process", iteration);
             exit(1)
         }
-        prog_line = compute(&program[prog_line], &flags, prog_line);
+        let (prog_line, memory) = compute(&program[prog_line], &flags, prog_line, memory.clone());
         if DEBUG {
             println!(
                 "╟╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╎ it {}\n║",
@@ -65,7 +71,12 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
     }
 }
 
-fn compute(line: &Vec<String>, flags: &(Vec<String>, Vec<i32>), line_number: usize) -> usize {
+fn compute(
+    line: &Vec<String>,
+    flags: &(Vec<String>, Vec<i32>),
+    line_number: usize,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
     if DEBUG {
         if line.len() == 2 {
             println!(
@@ -81,22 +92,24 @@ fn compute(line: &Vec<String>, flags: &(Vec<String>, Vec<i32>), line_number: usi
     }
 
     // Matching instruction and executing corresponding function
+    let op1 = line[1].clone();
+    let op2 = line[2].clone();
     match line[0].as_str() {
-        "var" => instruction_nll(line_number),
-        "set" => instruction_nll(line_number),
-        "add" => instruction_nll(line_number),
-        "sub" => instruction_nll(line_number),
-        "mul" => instruction_nll(line_number),
-        "div" => instruction_nll(line_number),
-        "rst" => instruction_nll(line_number),
-        "ret" => instruction_nll(line_number),
-        "flg" => instruction_nll(line_number),
-        "gto" => instruction_nll(line_number),
-        "jmp" => instruction_nll(line_number),
-        "jne" => instruction_nll(line_number),
-        "ctp" => instruction_nll(line_number),
-        "nll" => instruction_nll(line_number),
-        "prt" => instruction_nll(line_number),
+        "var" => instruction_var(line_number, op1, op2, memory),
+        "set" => instruction_nll(line_number, memory),
+        "add" => instruction_nll(line_number, memory),
+        "sub" => instruction_nll(line_number, memory),
+        "mul" => instruction_nll(line_number, memory),
+        "div" => instruction_nll(line_number, memory),
+        "rst" => instruction_nll(line_number, memory),
+        "ret" => instruction_nll(line_number, memory),
+        "flg" => instruction_nll(line_number, memory),
+        "gto" => instruction_nll(line_number, memory),
+        "jmp" => instruction_nll(line_number, memory),
+        "jne" => instruction_nll(line_number, memory),
+        "ctp" => instruction_nll(line_number, memory),
+        "nll" => instruction_nll(line_number, memory),
+        "prt" => instruction_nll(line_number, memory),
         _ => {
             eprintln!(
                 "Error : unexpected instruction {} line {}",
@@ -107,8 +120,49 @@ fn compute(line: &Vec<String>, flags: &(Vec<String>, Vec<i32>), line_number: usi
     }
 }
 
-fn instruction_nll(line_number: usize) -> usize {
-    line_number + 1
+//---------------- INSTRUCTIONS ---------------\\
+
+// var: name, type          CREATE A VAR GIVEN A TYPE
+fn instruction_var(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    // Verify that name is not reserved
+    let name = check_reserved_name(op1, line_number);
+    let type_var = op2;
+    let memory_changed = match type_var.as_str() {
+        "int" => mem::create_integer(name, memory),
+        "flt" => mem::create_float(name, memory),
+        "chr" => mem::create_char(name, memory),
+        "str" => mem::create_string(name, memory),
+        _ => {
+            eprintln!("Error : unknown type {:?} line {}", type_var, line_number);
+            exit(1);
+        }
+    };
+    (line_number + 1, memory_changed)
+}
+
+// nll: nll                 DO NOTHING
+fn instruction_nll(line_number: usize, memory: mem::Memory) -> (usize, mem::Memory) {
+    (line_number + 1, memory)
+}
+
+//------------------- UTILS -------------------\\
+
+// Return name if not reserved
+fn check_reserved_name(name: String, line_number: usize) -> String {
+    if name.chars().next() != Some('_') {
+        name
+    } else {
+        eprintln!(
+            "Error : cannot create var {} (reserved name) line {}",
+            name, line_number
+        );
+        exit(1)
+    }
 }
 
 //------------------ PREPROC ------------------\\
