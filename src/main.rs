@@ -40,7 +40,7 @@ fn main() {
 
 //------------------ RUNTIME ------------------\\
 
-// Memory creation
+// Memory management
 #[path = "mem.rs"]
 mod mem;
 
@@ -99,34 +99,36 @@ fn compute(
     let (op2, one_op) = if line.len() == 3 {
         (line[2].clone(), false)
     } else {
-        ("".to_string(), true)
+        if line[0] == "ret"
+            || line[0] == "flg"
+            || line[0] == "gto"
+            || line[0] == "nll"
+            || line[0] == "prt"
+        {
+            ("".to_string(), true)
+        } else {
+            eprintln!("Error : missing second operand line {}", line_number);
+            exit(1)
+        }
     };
     match line[0].as_str() {
-        "var" => {
-            if one_op {
-                eprintln!(
-                    "Error : second operand does not exists line {}",
-                    line_number
-                );
-                exit(1)
-            } else {
-                instruction_var(line_number, op1, op2, memory)
-            }
-        }
-        "set" => instruction_nll(line_number, memory),
-        "add" => instruction_nll(line_number, memory),
-        "sub" => instruction_nll(line_number, memory),
-        "mul" => instruction_nll(line_number, memory),
-        "div" => instruction_nll(line_number, memory),
-        "rst" => instruction_nll(line_number, memory),
-        "ret" => instruction_nll(line_number, memory),
-        "flg" => instruction_nll(line_number, memory),
-        "gto" => instruction_nll(line_number, memory),
-        "jmp" => instruction_nll(line_number, memory),
-        "jne" => instruction_nll(line_number, memory),
-        "ctp" => instruction_nll(line_number, memory),
-        "nll" => instruction_nll(line_number, memory),
-        "prt" => instruction_nll(line_number, memory),
+        // Two operands needed :
+        "var" => instruction::var(line_number, op1, op2, memory),
+        "set" => instruction::nll(line_number, memory),
+        "add" => instruction::nll(line_number, memory),
+        "sub" => instruction::nll(line_number, memory),
+        "mul" => instruction::nll(line_number, memory),
+        "div" => instruction::nll(line_number, memory),
+        "rst" => instruction::nll(line_number, memory),
+        "jmp" => instruction::nll(line_number, memory),
+        "jne" => instruction::nll(line_number, memory),
+        "ctp" => instruction::nll(line_number, memory),
+        // One operand needed :
+        "ret" => instruction::nll(line_number, memory),
+        "flg" => instruction::nll(line_number, memory),
+        "gto" => instruction::nll(line_number, memory),
+        "nll" => instruction::nll(line_number, memory),
+        "prt" => instruction::nll(line_number, memory),
         _ => {
             eprintln!(
                 "Error : unexpected instruction {} line {}",
@@ -139,48 +141,9 @@ fn compute(
 
 //---------------- INSTRUCTIONS ---------------\\
 
-// var: name, type          CREATE A VAR GIVEN A TYPE
-fn instruction_var(
-    line_number: usize,
-    op1: String,
-    op2: String,
-    memory: mem::Memory,
-) -> (usize, mem::Memory) {
-    // Verify that name is not reserved
-    let name = check_reserved_name(op1, line_number);
-    let type_var = op2;
-    let memory_changed = match type_var.as_str() {
-        "int" => mem::create_integer(name, memory),
-        "flt" => mem::create_float(name, memory),
-        "chr" => mem::create_char(name, memory),
-        "str" => mem::create_string(name, memory),
-        _ => {
-            eprintln!("Error : unknown type {:?} line {}", type_var, line_number);
-            exit(1);
-        }
-    };
-    (line_number + 1, memory_changed)
-}
-
-// nll: nll                 DO NOTHING
-fn instruction_nll(line_number: usize, memory: mem::Memory) -> (usize, mem::Memory) {
-    (line_number + 1, memory)
-}
-
-//------------------- UTILS -------------------\\
-
-// Return name if not reserved
-fn check_reserved_name(name: String, line_number: usize) -> String {
-    if name.chars().next() != Some('_') {
-        name
-    } else {
-        eprintln!(
-            "Error : cannot create var {} (reserved name) line {}",
-            name, line_number
-        );
-        exit(1)
-    }
-}
+// Instructions management
+#[path = "instruction.rs"]
+mod instruction;
 
 //------------------ PREPROC ------------------\\
 
