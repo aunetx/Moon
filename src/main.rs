@@ -96,7 +96,7 @@ fn compute(
     //      Matching instruction and executing corresponding function
     let op1 = line[1].clone();
     // Check wether operand 2 exists
-    let (op2, one_op) = if line.len() == 3 {
+    let (op2, _one_op) = if line.len() == 3 {
         (line[2].clone(), false)
     } else {
         if line[0] == "ret"
@@ -114,7 +114,7 @@ fn compute(
     match line[0].as_str() {
         // Two operands needed :
         "var" => instruction::var(line_number, op1, op2, memory),
-        "set" => instruction::nll(line_number, memory),
+        "set" => instruction::set(line_number, op1, op2, memory),
         "add" => instruction::nll(line_number, memory),
         "sub" => instruction::nll(line_number, memory),
         "mul" => instruction::nll(line_number, memory),
@@ -134,7 +134,7 @@ fn compute(
                 "Error : unexpected instruction {} line {}",
                 line[0], line_number
             );
-            exit(1)
+            exit(1);
         }
     }
 }
