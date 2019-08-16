@@ -50,10 +50,10 @@ pub fn set(
     let (value, type_value) = mem::get_plain_value(op2, memory.clone());
     // Change variable value
     let memory_changed = match type_value {
-        "int" => mem::create_integer(&name, memory),
-        "flt" => mem::create_float(&name, memory),
-        "chr" => mem::create_char(&name, memory),
-        "str" => mem::create_string(&name, memory),
+        "int" => mem::set_integer(&name, value, memory),
+        "flt" => mem::set_float(&name, value, memory),
+        "chr" => mem::set_char(&name, value, memory),
+        "str" => mem::set_string(&name, value, memory),
         _ => {
             eprintln!("Error : unknown type {:?} line {}", type_value, line_number);
             std::process::exit(1);

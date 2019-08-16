@@ -201,3 +201,29 @@ pub fn remove_variable_with_type(name: &String, var_type: &str, memory: Memory) 
     };
     memory_changed
 }
+
+// Set variable value : delete the old value, and create a new one WITH NEW INDEX.
+pub fn set_integer(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
+    let mut new_mem = remove_variable_with_type(name, "int", memory);
+    (new_mem.0).0.push(name.clone());
+    (new_mem.0).1.push(value.0);
+    new_mem
+}
+pub fn set_float(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
+    let mut new_mem = remove_variable_with_type(name, "flt", memory);
+    (new_mem.1).0.push(name.clone());
+    (new_mem.1).1.push(value.1);
+    new_mem
+}
+pub fn set_char(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
+    let mut new_mem = remove_variable_with_type(name, "chr", memory);
+    (new_mem.2).0.push(name.clone());
+    (new_mem.2).1.push(value.2);
+    new_mem
+}
+pub fn set_string(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
+    let mut new_mem = remove_variable_with_type(name, "str", memory);
+    (new_mem.3).0.push(name.clone());
+    (new_mem.3).1.push(value.3);
+    new_mem
+}
