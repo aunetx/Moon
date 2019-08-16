@@ -47,7 +47,7 @@ pub fn set(
     // Verify that var is not reserved
     let name = check_reserved_name(op1, line_number);
     // Get wanted value and type
-    let (value, type_value) = mem::get_value_type(op2, memory.clone());
+    let (value, type_value) = mem::get_plain_value(op2, memory.clone());
     // Change variable value
     let memory_changed = match type_value {
         "int" => mem::create_integer(&name, memory),

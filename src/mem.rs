@@ -52,7 +52,6 @@ pub fn get_value_string(name: &String, memory: Memory) -> String {
     (memory.3).1[index].clone()
 }
 pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
-    // Need implementation for plain numbers
     let var_type = match search_variable(&name, &memory) {
         Ok(tp) => tp,
         Err(e) => {
@@ -78,6 +77,16 @@ pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String)
             eprintln!("Error : unknown type {}", var_type);
             std::process::exit(1)
         }
+    }
+}
+
+pub fn get_plain_value(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
+    match name.parse::<i32>() {
+        Ok(value) => ((value, 0.0, '\x00', String::new()), "int"),
+        Err(e) => match name.parse::<f64>() {
+            Ok(value) => ((0, value, '\x00', String::new()), "int"),
+            Err(e) => get_value_type(name, memory),
+        },
     }
 }
 
