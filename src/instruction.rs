@@ -96,6 +96,142 @@ pub fn add(
     (line_number + 1, memory)
 }
 
+// sub: (var|value), (var|value)        SUBSTRACT TWO OPERANDS => _res
+pub fn sub(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let res = &String::from("_res");
+    // Get wanted value and type
+    let (value_op1, value_type_op1) = mem::get_plain_value(op1.clone(), memory.clone());
+    let (value_op2, value_type_op2) = mem::get_plain_value(op2.clone(), memory.clone());
+    // Check if same type
+    let memory = if value_type_op1 == value_type_op2 {
+        match value_type_op1 {
+            "int" => mem::set_integer(res, value_op1.0 - value_op2.0, memory),
+            "flt" => mem::set_float(res, value_op1.1 - value_op2.1, memory),
+            _ => {
+                eprintln!(
+                    "Error : can't perform operation 'add' on type {} line {}",
+                    value_type_op1, line_number
+                );
+                std::process::exit(1);
+            }
+        }
+    } else {
+        eprintln!(
+            "Error : type of {:?} is not the same as {:?} ({} != {}) line {}",
+            op1, op2, value_type_op1, value_type_op2, line_number
+        );
+        std::process::exit(1);
+    };
+    (line_number + 1, memory)
+}
+
+// mul: (var|value), (var|value)        MULTIPLY TWO OPERANDS => _res
+pub fn mul(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let res = &String::from("_res");
+    // Get wanted value and type
+    let (value_op1, value_type_op1) = mem::get_plain_value(op1.clone(), memory.clone());
+    let (value_op2, value_type_op2) = mem::get_plain_value(op2.clone(), memory.clone());
+    // Check if same type
+    let memory = if value_type_op1 == value_type_op2 {
+        match value_type_op1 {
+            "int" => mem::set_integer(res, value_op1.0 * value_op2.0, memory),
+            "flt" => mem::set_float(res, value_op1.1 * value_op2.1, memory),
+            _ => {
+                eprintln!(
+                    "Error : can't perform operation 'add' on type {} line {}",
+                    value_type_op1, line_number
+                );
+                std::process::exit(1);
+            }
+        }
+    } else {
+        eprintln!(
+            "Error : type of {:?} is not the same as {:?} ({} != {}) line {}",
+            op1, op2, value_type_op1, value_type_op2, line_number
+        );
+        std::process::exit(1);
+    };
+    (line_number + 1, memory)
+}
+
+// div: (var|value), (var|value)        DIVISE TWO OPERANDS => _res
+pub fn div(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let res = &String::from("_res");
+    // Get wanted value and type
+    let (value_op1, value_type_op1) = mem::get_plain_value(op1.clone(), memory.clone());
+    let (value_op2, value_type_op2) = mem::get_plain_value(op2.clone(), memory.clone());
+    // Check if same type
+    let memory = if value_type_op1 == value_type_op2 {
+        match value_type_op1 {
+            "int" => mem::set_integer(res, value_op1.0 / value_op2.0, memory),
+            "flt" => mem::set_float(res, value_op1.1 / value_op2.1, memory),
+            _ => {
+                eprintln!(
+                    "Error : can't perform operation 'add' on type {} line {}",
+                    value_type_op1, line_number
+                );
+                std::process::exit(1);
+            }
+        }
+    } else {
+        eprintln!(
+            "Error : type of {:?} is not the same as {:?} ({} != {}) line {}",
+            op1, op2, value_type_op1, value_type_op2, line_number
+        );
+        std::process::exit(1);
+    };
+    (line_number + 1, memory)
+}
+
+// rst: (var|value), (var|value)        DIVISE TWO OPERANDS AND RETURN THE REST => _res
+pub fn rst(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let res = &String::from("_res");
+    // Get wanted value and type
+    let (value_op1, value_type_op1) = mem::get_plain_value(op1.clone(), memory.clone());
+    let (value_op2, value_type_op2) = mem::get_plain_value(op2.clone(), memory.clone());
+    // Check if same type
+    let memory = if value_type_op1 == value_type_op2 {
+        match value_type_op1 {
+            "int" => mem::set_integer(res, value_op1.0 % value_op2.0, memory),
+            "flt" => mem::set_float(res, value_op1.1 % value_op2.1, memory),
+            _ => {
+                eprintln!(
+                    "Error : can't perform operation 'add' on type {} line {}",
+                    value_type_op1, line_number
+                );
+                std::process::exit(1);
+            }
+        }
+    } else {
+        eprintln!(
+            "Error : type of {:?} is not the same as {:?} ({} != {}) line {}",
+            op1, op2, value_type_op1, value_type_op2, line_number
+        );
+        std::process::exit(1);
+    };
+    (line_number + 1, memory)
+}
+
 // nll: nll                 DO NOTHING
 pub fn nll(line_number: usize, memory: mem::Memory) -> (usize, mem::Memory) {
     (line_number + 1, memory)
