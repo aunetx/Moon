@@ -5,7 +5,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "LLDB-debug",
-            "program": "${workspaceRoot}/target/debug/${workspaceRootFolderName}",
+            "program": "./target/debug/moon",
             "args": [],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": [
@@ -16,7 +16,7 @@
             "type": "gdb",
             "name": "GDB-debug",
             "request": "launch",
-            "target": "./target/debug/first",
+            "target": "./target/debug/moon",
             "cwd": "${workspaceRoot}",
             "gdbpath": "rust-gdb"
         }

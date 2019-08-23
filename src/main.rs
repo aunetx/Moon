@@ -5,7 +5,7 @@ use std::process::exit;
 
 const FILENAME: &str = "tables.moon";
 const DEBUG: bool = true;
-const MAX_ITERATIONS: i32 = 10_000;
+const MAX_ITERATIONS: i32 = 1_0;
 
 fn main() {
     // Preproc
@@ -23,7 +23,10 @@ fn main() {
     }
     let flags = get_flags(&compute_program);
     if DEBUG {
-        println!("✓ list of flags made")
+        println!("✓ list of flags made");
+        for flag in &flags.0 {
+            println!("{}", flag)
+        }
     }
 
     // Runtime
@@ -78,7 +81,7 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
 
 fn compute(
     line: &Vec<String>,
-    _flags: &(Vec<String>, Vec<i32>),
+    flags: &(Vec<String>, Vec<i32>),
     line_number: usize,
     memory: mem::Memory,
 ) -> (usize, mem::Memory) {
@@ -129,7 +132,7 @@ fn compute(
         // One operand needed :
         "ret" => instruction::nll(line_number, memory),
         "flg" => instruction::nll(line_number, memory),
-        "gto" => instruction::nll(line_number, memory),
+        "gto" => instruction::gto(line_number, op1, flags, memory),
         "nll" => instruction::nll(line_number, memory),
         "prt" => instruction::nll(line_number, memory),
         _ => {
@@ -229,7 +232,7 @@ fn get_flags(program: &Vec<Vec<String>>) -> (Vec<String>, Vec<i32>) {
     let mut lnb = 0;
     for line in program {
         if line[0] == "flg".to_string() {
-            flags_names.push(line[0].clone());
+            flags_names.push(line[1].clone());
             flags_locat.push(lnb);
         }
         lnb += 1;

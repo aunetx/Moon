@@ -14,13 +14,7 @@ pub fn var(
     let type_var = op2;
     // Shadowing the variable : remove ancient one
     let memory_changed = match mem::search_variable(&name, &memory) {
-        Ok(ancient_type_var) => {
-            if ancient_type_var != type_var {
-                mem::remove_variable_with_type(&name, ancient_type_var, memory)
-            } else {
-                memory
-            }
-        }
+        Ok(ancient_type_var) => mem::remove_variable_with_type(&name, ancient_type_var, memory),
         Err(_) => memory,
     };
     // Return the memory with added var
@@ -230,6 +224,29 @@ pub fn rst(
         std::process::exit(1);
     };
     (line_number + 1, memory)
+}
+
+// gto: flag                GO TO THE DESIRED FLAG OR VALUE
+pub fn gto(
+    line_number: usize,
+    name: String,
+    flags: &(Vec<String>, Vec<i32>),
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let new_line = match flags.0.binary_search(&name) {
+        Ok(index) => index,
+        Err(_) => match name.parse::<usize>() {
+            Ok(value) => value,
+            Err(_) => {
+                eprintln!(
+                    "Error : unrecognized flag or number {:?} line {}",
+                    name, line_number
+                );
+                std::process::exit(1);
+            }
+        },
+    };
+    (new_line, memory)
 }
 
 // nll: nll                 DO NOTHING

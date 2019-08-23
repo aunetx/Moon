@@ -26,16 +26,14 @@ fn init_string() -> Str {
 }
 
 // * Get index of a given variable
-// ! Variable need to exist
-// TODO: Change error managing, prefer fallbacks better than process quitting
+// ? Variable need to exist
+// TODO: Change error managing, prefer fallbacks better than quitting the process
 fn get_name_index(name: &String, array: &Vec<String>) -> usize {
+    // ! Error : cannot find value after beeing shadowed ?
     match array.binary_search(name) {
         Ok(index) => index,
-        Err(error) => {
-            eprintln!(
-                "Error : variable {} not found in name array ({})",
-                name, error
-            );
+        Err(_) => {
+            eprintln!("Error : variable {:?} not found in name array", name);
             std::process::exit(1)
         }
     }
@@ -201,36 +199,24 @@ pub fn remove_variable_with_type(name: &String, var_type: &str, memory: Memory) 
     let mut memory_changed = memory;
     match var_type {
         "int" => {
-            (memory_changed.0)
-                .0
-                .remove(get_name_index(name, &(memory_changed.0).0));
-            (memory_changed.0)
-                .1
-                .remove(get_name_index(name, &(memory_changed.0).0));
+            let index = get_name_index(name, &(memory_changed.0).0);
+            (memory_changed.0).0.remove(index);
+            (memory_changed.0).1.remove(index);
         }
         "flt" => {
-            (memory_changed.1)
-                .0
-                .remove(get_name_index(name, &(memory_changed.0).0));
-            (memory_changed.1)
-                .1
-                .remove(get_name_index(name, &(memory_changed.0).0));
+            let index = get_name_index(name, &(memory_changed.1).0);
+            (memory_changed.1).0.remove(index);
+            (memory_changed.1).1.remove(index);
         }
         "chr" => {
-            (memory_changed.2)
-                .0
-                .remove(get_name_index(name, &(memory_changed.0).0));
-            (memory_changed.2)
-                .1
-                .remove(get_name_index(name, &(memory_changed.0).0));
+            let index = get_name_index(name, &(memory_changed.2).0);
+            (memory_changed.2).0.remove(index);
+            (memory_changed.2).1.remove(index);
         }
         "str" => {
-            (memory_changed.3)
-                .0
-                .remove(get_name_index(name, &(memory_changed.0).0));
-            (memory_changed.3)
-                .1
-                .remove(get_name_index(name, &(memory_changed.0).0));
+            let index = get_name_index(name, &(memory_changed.3).0);
+            (memory_changed.3).0.remove(index);
+            (memory_changed.3).1.remove(index);
         }
         _ => {
             eprintln!("Error : unknown type {}", var_type);
