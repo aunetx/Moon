@@ -50,16 +50,50 @@ pub fn set(
     let (value, type_value) = mem::get_plain_value(op2, memory.clone());
     // Change variable value
     let memory_changed = match type_value {
-        "int" => mem::set_integer(&name, value, memory),
-        "flt" => mem::set_float(&name, value, memory),
-        "chr" => mem::set_char(&name, value, memory),
-        "str" => mem::set_string(&name, value, memory),
+        "int" => mem::set_integer(&name, value.0, memory),
+        "flt" => mem::set_float(&name, value.1, memory),
+        "chr" => mem::set_char(&name, value.2, memory),
+        "str" => mem::set_string(&name, value.3, memory),
         _ => {
             eprintln!("Error : unknown type {:?} line {}", type_value, line_number);
             std::process::exit(1);
         }
     };
     (line_number + 1, memory_changed)
+}
+
+// add: (var|value), (var|value)        ADD TWO OPERANDS => _res
+pub fn add(
+    line_number: usize,
+    op1: String,
+    op2: String,
+    memory: mem::Memory,
+) -> (usize, mem::Memory) {
+    let res = &String::from("_res");
+    // Get wanted value and type
+    let (value_op1, value_type_op1) = mem::get_plain_value(op1.clone(), memory.clone());
+    let (value_op2, value_type_op2) = mem::get_plain_value(op2.clone(), memory.clone());
+    // Check if same type
+    let memory = if value_type_op1 == value_type_op2 {
+        match value_type_op1 {
+            "int" => mem::set_integer(res, value_op1.0 + value_op2.0, memory),
+            "flt" => mem::set_float(res, value_op1.1 + value_op2.1, memory),
+            _ => {
+                eprintln!(
+                    "Error : can't perform operation 'add' on type {} line {}",
+                    value_type_op1, line_number
+                );
+                std::process::exit(1);
+            }
+        }
+    } else {
+        eprintln!(
+            "Error : type of {:?} is not the same as {:?} ({} != {}) line {}",
+            op1, op2, value_type_op1, value_type_op2, line_number
+        );
+        std::process::exit(1);
+    };
+    (line_number + 1, memory)
 }
 
 // nll: nll                 DO NOTHING

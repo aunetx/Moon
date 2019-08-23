@@ -1,14 +1,17 @@
-// Types declarations
+// * Types declarations
 pub type Memory = (Integer, Float, Char, Str);
 type Integer = (Vec<String>, Vec<i32>);
 type Float = (Vec<String>, Vec<f64>);
 type Char = (Vec<String>, Vec<char>);
 type Str = (Vec<String>, Vec<String>);
 
-// Init types
+// * Init Memory type (with each type inited in order)
 pub fn init_memory() -> Memory {
-    (init_integers(), init_float(), init_char(), init_string())
+    let mem = (init_integers(), init_float(), init_char(), init_string());
+    // Need to init system variable ('_res')
+    create_integer(&"_res".to_string(), mem)
 }
+// * Init each type of variables : tuple containing an array of names, coupled with array of corresponding value
 fn init_integers() -> Integer {
     (Vec::new(), Vec::new())
 }
@@ -22,7 +25,9 @@ fn init_string() -> Str {
     (Vec::new(), Vec::new())
 }
 
-// Get value
+// * Get index of a given variable
+// ! Variable need to exist
+// TODO: Change error managing, prefer fallbacks better than process quitting
 fn get_name_index(name: &String, array: &Vec<String>) -> usize {
     match array.binary_search(name) {
         Ok(index) => index,
@@ -35,6 +40,8 @@ fn get_name_index(name: &String, array: &Vec<String>) -> usize {
         }
     }
 }
+
+// * Get value of a given variable (type defined for each function)
 pub fn get_value_integer(name: &String, memory: Memory) -> i32 {
     let index = get_name_index(name, &(memory.0).0);
     (memory.0).1[index]
@@ -51,11 +58,13 @@ pub fn get_value_string(name: &String, memory: Memory) -> String {
     let index = get_name_index(name, &(memory.0).0);
     (memory.3).1[index].clone()
 }
+
+// * Get value and type of a given variable
 pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
     let var_type = match search_variable(&name, &memory) {
         Ok(tp) => tp,
         Err(e) => {
-            eprintln!("Internal error (ERR_TYPE_UNKNOWN)");
+            eprintln!("Error : cannot find variable {:?} in names array", name);
             std::process::exit(1);
         }
     };
@@ -80,17 +89,19 @@ pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String)
     }
 }
 
+// * Return the value contained in a given string (i32, f64 or variable value)
 pub fn get_plain_value(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
     match name.parse::<i32>() {
         Ok(value) => ((value, 0.0, '\x00', String::new()), "int"),
         Err(e) => match name.parse::<f64>() {
             Ok(value) => ((0, value, '\x00', String::new()), "int"),
+            // FALLBACK : return value contained in variable named 'name'
             Err(e) => get_value_type(name, memory),
         },
     }
 }
 
-// Search existing variable and get type
+// * Verify that variable with given type exist and return its value
 fn variable_type_exists(name: &String, var_type: &str, memory: &Memory) -> Result<usize, usize> {
     if var_type == "int" {
         (memory.0).0.binary_search(name)
@@ -101,11 +112,12 @@ fn variable_type_exists(name: &String, var_type: &str, memory: &Memory) -> Resul
     } else if var_type == "str" {
         (memory.3).0.binary_search(name)
     } else {
-        eprintln!("Internal error (ERR_TYPE_UNKNOWN)");
+        eprintln!("Internal error (ERR_TYPE_UNKNOWN : {})", var_type);
         std::process::exit(1);
     }
 }
 
+// * Search for the value of a variable : return Result<Ok(VALUE), Err(e)>
 pub fn search_variable(name: &String, memory: &Memory) -> Result<&'static str, usize> {
     let res = variable_type_exists(name, "int", memory);
     match res {
@@ -119,9 +131,9 @@ pub fn search_variable(name: &String, memory: &Memory) -> Result<&'static str, u
                     match res {
                         Ok(res) => Ok("chr"),
                         Err(res) => {
-                            let res = variable_type_exists(name, "flt", memory);
+                            let res = variable_type_exists(name, "str", memory);
                             match res {
-                                Ok(res) => Ok("flt"),
+                                Ok(res) => Ok("str"),
                                 Err(res) => Err(1),
                             }
                         }
@@ -132,7 +144,7 @@ pub fn search_variable(name: &String, memory: &Memory) -> Result<&'static str, u
     }
 }
 
-// Create variables
+// * Create variables
 pub fn create_integer(name: &String, memory: Memory) -> Memory {
     let mut new_mem = memory;
     (new_mem.0).0.push(name.clone());
@@ -158,7 +170,33 @@ pub fn create_string(name: &String, memory: Memory) -> Memory {
     new_mem
 }
 
-// Remove variable
+// * Set variable value
+pub fn set_integer(name: &String, value: i32, memory: Memory) -> Memory {
+    let mut new_mem = memory.clone();
+    let index = get_name_index(name, &(new_mem.0).0);
+    std::mem::replace(&mut (new_mem.0).1[index], value);
+    new_mem
+}
+pub fn set_float(name: &String, value: f64, memory: Memory) -> Memory {
+    let mut new_mem = memory.clone();
+    let index = get_name_index(name, &(new_mem.1).0);
+    std::mem::replace(&mut (new_mem.1).1[index], value);
+    new_mem
+}
+pub fn set_char(name: &String, value: char, memory: Memory) -> Memory {
+    let mut new_mem = memory.clone();
+    let index = get_name_index(name, &(new_mem.2).0);
+    std::mem::replace(&mut (new_mem.2).1[index], value);
+    new_mem
+}
+pub fn set_string(name: &String, value: String, memory: Memory) -> Memory {
+    let mut new_mem = memory.clone();
+    let index = get_name_index(name, &(new_mem.3).0);
+    std::mem::replace(&mut (new_mem.3).1[index], value);
+    new_mem
+}
+
+// * Remove variable with given name
 pub fn remove_variable_with_type(name: &String, var_type: &str, memory: Memory) -> Memory {
     let mut memory_changed = memory;
     match var_type {
@@ -202,28 +240,31 @@ pub fn remove_variable_with_type(name: &String, var_type: &str, memory: Memory) 
     memory_changed
 }
 
-// Set variable value : delete the old value, and create a new one WITH NEW INDEX.
-pub fn set_integer(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
-    let mut new_mem = remove_variable_with_type(name, "int", memory);
-    (new_mem.0).0.push(name.clone());
-    (new_mem.0).1.push(value.0);
-    new_mem
-}
-pub fn set_float(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
-    let mut new_mem = remove_variable_with_type(name, "flt", memory);
-    (new_mem.1).0.push(name.clone());
-    (new_mem.1).1.push(value.1);
-    new_mem
-}
-pub fn set_char(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
-    let mut new_mem = remove_variable_with_type(name, "chr", memory);
-    (new_mem.2).0.push(name.clone());
-    (new_mem.2).1.push(value.2);
-    new_mem
-}
-pub fn set_string(name: &String, value: (i32, f64, char, std::string::String), memory: Memory) -> Memory {
-    let mut new_mem = remove_variable_with_type(name, "str", memory);
-    (new_mem.3).0.push(name.clone());
-    (new_mem.3).1.push(value.3);
-    new_mem
+// ! DEBUG : print memory map
+pub fn print_memory(mem_clone: Memory) {
+    let mut ct = 0;
+    print!("║\n╟╶ Memory map\n║ * Int : ");
+    for var in (mem_clone.0).0 {
+        print!("{} = {} ; ", var, (mem_clone.0).1[ct]);
+        ct = ct + 1;
+    }
+    let mut ct = 0;
+    print!("\n║ * Float : ");
+    for var in (mem_clone.1).0 {
+        print!("{} = {} ; ", var, (mem_clone.1).1[ct]);
+        ct = ct + 1;
+    }
+    let mut ct = 0;
+    print!("\n║ * Char : ");
+    for var in (mem_clone.2).0 {
+        print!("{} = {} ; ", var, (mem_clone.2).1[ct]);
+        ct = ct + 1;
+    }
+    let mut ct = 0;
+    print!("\n║ * String : ");
+    for var in (mem_clone.3).0 {
+        print!("{} = {} ; ", var, (mem_clone.3).1[ct]);
+        ct = ct + 1;
+    }
+    println!();
 }

@@ -61,8 +61,12 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
         prog_line = result.0;
         memory = result.1;
         if DEBUG {
+            // ! DEBUG : print memory
+            mem::print_memory(memory.clone());
+            // ! DEBUG
+
             println!(
-                "╟╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╎ it {}\n║",
+                "╟╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╎ it {} ✓\n║",
                 iteration
             );
         }
@@ -115,7 +119,7 @@ fn compute(
         // Two operands needed :
         "var" => instruction::var(line_number, op1, op2, memory),
         "set" => instruction::set(line_number, op1, op2, memory),
-        "add" => instruction::nll(line_number, memory),
+        "add" => instruction::add(line_number, op1, op2, memory),
         "sub" => instruction::nll(line_number, memory),
         "mul" => instruction::nll(line_number, memory),
         "div" => instruction::nll(line_number, memory),
