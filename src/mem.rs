@@ -63,7 +63,7 @@ pub fn get_value_string(name: &String, memory: Memory) -> String {
 pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
     let var_type = match search_variable(&name, &memory) {
         Ok(tp) => tp,
-        Err(e) => {
+        Err(_) => {
             eprintln!("Error : cannot find variable {:?} in names array", name);
             std::process::exit(1);
         }
@@ -93,10 +93,10 @@ pub fn get_value_type(name: String, memory: Memory) -> ((i32, f64, char, String)
 pub fn get_plain_value(name: String, memory: Memory) -> ((i32, f64, char, String), &'static str) {
     match name.parse::<i32>() {
         Ok(value) => ((value, 0.0, '\x00', String::new()), "int"),
-        Err(e) => match name.parse::<f64>() {
+        Err(_) => match name.parse::<f64>() {
             Ok(value) => ((0, value, '\x00', String::new()), "int"),
             // FALLBACK : return value contained in variable named 'name'
-            Err(e) => get_value_type(name, memory),
+            Err(_) => get_value_type(name, memory),
         },
     }
 }
@@ -121,20 +121,20 @@ fn variable_type_exists(name: &String, var_type: &str, memory: &Memory) -> Resul
 pub fn search_variable(name: &String, memory: &Memory) -> Result<&'static str, usize> {
     let res = variable_type_exists(name, "int", memory);
     match res {
-        Ok(res) => Ok("int"),
-        Err(res) => {
+        Ok(_) => Ok("int"),
+        Err(_) => {
             let res = variable_type_exists(name, "flt", memory);
             match res {
-                Ok(res) => Ok("flt"),
-                Err(res) => {
+                Ok(_) => Ok("flt"),
+                Err(_) => {
                     let res = variable_type_exists(name, "chr", memory);
                     match res {
-                        Ok(res) => Ok("chr"),
-                        Err(res) => {
+                        Ok(_) => Ok("chr"),
+                        Err(_) => {
                             let res = variable_type_exists(name, "str", memory);
                             match res {
-                                Ok(res) => Ok("str"),
-                                Err(res) => Err(1),
+                                Ok(_) => Ok("str"),
+                                Err(_) => Err(1),
                             }
                         }
                     }

@@ -1,6 +1,6 @@
 // Memory management
 #[path = "mem.rs"]
-mod mem;
+pub mod mem;
 
 // var: name, type          CREATE A VAR GIVEN A TYPE
 pub fn var(

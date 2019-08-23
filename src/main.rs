@@ -41,8 +41,7 @@ fn main() {
 //------------------ RUNTIME ------------------\\
 
 // Memory management
-#[path = "mem.rs"]
-mod mem;
+pub mod mem;
 
 fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
     let mut prog_line: usize = 0;
@@ -79,7 +78,7 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
 
 fn compute(
     line: &Vec<String>,
-    flags: &(Vec<String>, Vec<i32>),
+    _flags: &(Vec<String>, Vec<i32>),
     line_number: usize,
     memory: mem::Memory,
 ) -> (usize, mem::Memory) {
@@ -145,9 +144,8 @@ fn compute(
 
 //---------------- INSTRUCTIONS ---------------\\
 
-// Instructions management
-#[path = "instruction.rs"]
-mod instruction;
+// Instructions managemen
+pub mod instruction;
 
 //------------------ PREPROC ------------------\\
 
