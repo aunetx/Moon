@@ -29,7 +29,10 @@ fn init_string() -> Str {
 // ? Variable need to exist
 // TODO: Change error managing, prefer fallbacks better than quitting the process
 fn get_name_index(name: &String, array: &Vec<String>) -> usize {
-    // ! Error : cannot find value after beeing shadowed ?
+    // Need to sort the array before searching
+    let mut array = array.clone();
+    array.sort_unstable();
+    // TODO: Implement standard search to be more efficient
     match array.binary_search(name) {
         Ok(index) => index,
         Err(_) => {
