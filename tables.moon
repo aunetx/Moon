@@ -1,9 +1,9 @@
-flg: a
+flg: f
 var: a, int
 set: a, 0
 var: b, int
 set: b, 0
-gto: a
+gto: f
 flg: table1
 
 flg: table2

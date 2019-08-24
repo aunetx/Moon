@@ -2,7 +2,7 @@
 #[path = "mem.rs"]
 pub mod mem;
 
-// var: name, type          CREATE A VAR GIVEN A TYPE
+// * var: name, type          CREATE A VAR GIVEN A TYPE
 pub fn var(
     line_number: usize,
     op1: String,
@@ -14,7 +14,10 @@ pub fn var(
     let type_var = op2;
     // Shadowing the variable : remove ancient one
     let memory_changed = match mem::search_variable(&name, &memory) {
-        Ok(ancient_type_var) => mem::remove_variable_with_type(&name, ancient_type_var, memory),
+        Ok(ancient_type_var) => {
+            println!("Shadowed variable {}", name);
+            mem::remove_variable_with_type(&name, ancient_type_var, memory)
+        }
         Err(_) => memory,
     };
     // Return the memory with added var
@@ -31,7 +34,7 @@ pub fn var(
     (line_number + 1, memory_changed)
 }
 
-// set: var, (var|value)    SET VAR TO VALUE
+// * set: var, (var|value)    SET VAR TO VALUE
 pub fn set(
     line_number: usize,
     op1: String,
@@ -56,7 +59,7 @@ pub fn set(
     (line_number + 1, memory_changed)
 }
 
-// add: (var|value), (var|value)        ADD TWO OPERANDS => _res
+// * add: (var|value), (var|value)        ADD TWO OPERANDS => _res
 pub fn add(
     line_number: usize,
     op1: String,
@@ -90,7 +93,7 @@ pub fn add(
     (line_number + 1, memory)
 }
 
-// sub: (var|value), (var|value)        SUBSTRACT TWO OPERANDS => _res
+// * sub: (var|value), (var|value)        SUBSTRACT TWO OPERANDS => _res
 pub fn sub(
     line_number: usize,
     op1: String,
@@ -124,7 +127,7 @@ pub fn sub(
     (line_number + 1, memory)
 }
 
-// mul: (var|value), (var|value)        MULTIPLY TWO OPERANDS => _res
+// * mul: (var|value), (var|value)        MULTIPLY TWO OPERANDS => _res
 pub fn mul(
     line_number: usize,
     op1: String,
@@ -158,7 +161,7 @@ pub fn mul(
     (line_number + 1, memory)
 }
 
-// div: (var|value), (var|value)        DIVISE TWO OPERANDS => _res
+// * div: (var|value), (var|value)        DIVISE TWO OPERANDS => _res
 pub fn div(
     line_number: usize,
     op1: String,
@@ -192,7 +195,7 @@ pub fn div(
     (line_number + 1, memory)
 }
 
-// rst: (var|value), (var|value)        DIVISE TWO OPERANDS AND RETURN THE REST => _res
+// * rst: (var|value), (var|value)        DIVISE TWO OPERANDS AND RETURN THE REST => _res
 pub fn rst(
     line_number: usize,
     op1: String,
@@ -226,7 +229,7 @@ pub fn rst(
     (line_number + 1, memory)
 }
 
-// gto: flag                GO TO THE DESIRED FLAG OR VALUE
+// * gto: flag                GO TO THE DESIRED FLAG OR VALUE
 pub fn gto(
     line_number: usize,
     name: String,
@@ -249,14 +252,14 @@ pub fn gto(
     (new_line, memory)
 }
 
-// nll: nll                 DO NOTHING
+// * nll: nll                 DO NOTHING
 pub fn nll(line_number: usize, memory: mem::Memory) -> (usize, mem::Memory) {
     (line_number + 1, memory)
 }
 
 //------------------- UTILS -------------------\\
 
-// Return name if not reserved
+// * Return name if not reserved
 fn check_reserved_name(name: String, line_number: usize) -> String {
     if name.chars().next() != Some('_') {
         name

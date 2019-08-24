@@ -5,7 +5,7 @@ use std::process::exit;
 
 const FILENAME: &str = "tables.moon";
 const DEBUG: bool = true;
-const MAX_ITERATIONS: i32 = 1_0;
+const MAX_ITERATIONS: i32 = 1_00;
 
 fn main() {
     // Preproc
