@@ -5,7 +5,14 @@ use std::process::exit;
 
 const FILENAME: &str = "tables.moon";
 const DEBUG: bool = true;
-const MAX_ITERATIONS: i32 = 1_00;
+const MAX_ITERATIONS: i32 = 1_000;
+
+// ! NOW TRYING TO REDESIGN HOW MEMORY VARIABLE IS MANAGED
+// !
+// ! We will try to use references to original variable instead of shadowing it :
+// ! This way, functions acting on mem will be epured, faster and less bugued
+// !
+// ! This is a deep answer to the problem of duplicated variables with instruction `var`
 
 fn main() {
     // Preproc
