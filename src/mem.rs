@@ -235,25 +235,25 @@ pub fn print_memory(mem_clone: Memory) {
     print!("║\n╟╶ Memory map\n║ * Int : ");
     for var in (mem_clone.0).0 {
         print!("{} = {} ; ", var, (mem_clone.0).1[ct]);
-        ct = ct + 1;
+        ct += 1;
     }
     let mut ct = 0;
     print!("\n║ * Float : ");
     for var in (mem_clone.1).0 {
         print!("{} = {} ; ", var, (mem_clone.1).1[ct]);
-        ct = ct + 1;
+        ct += 1;
     }
     let mut ct = 0;
     print!("\n║ * Char : ");
     for var in (mem_clone.2).0 {
         print!("{} = {} ; ", var, (mem_clone.2).1[ct]);
-        ct = ct + 1;
+        ct += 1;
     }
     let mut ct = 0;
     print!("\n║ * String : ");
     for var in (mem_clone.3).0 {
         print!("{} = {} ; ", var, (mem_clone.3).1[ct]);
-        ct = ct + 1;
+        ct += 1;
     }
     println!();
 }

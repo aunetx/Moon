@@ -261,7 +261,7 @@ pub fn nll(line_number: usize, memory: mem::Memory) -> (usize, mem::Memory) {
 
 // * Return name if not reserved
 fn check_reserved_name(name: String, line_number: usize) -> String {
-    if name.chars().next() != Some('_') {
+    if !name.starts_with('_') {
         name
     } else {
         eprintln!(
