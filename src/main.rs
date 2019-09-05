@@ -15,11 +15,11 @@ const MAX_ITERATIONS: i32 = 1_0;
 // ! This is a deep answer to the problem of duplicated variables with instruction `var`
 
 fn main() {
-    // Preproc
     if DEBUG {
         println!("\n----------------------------------------------");
         println!("                    PREPROC                    \n");
     }
+    // catch i/o error
     let content = match open_file(FILENAME) {
         Ok(file) => file,
         Err(error) => {
@@ -30,7 +30,7 @@ fn main() {
     if DEBUG {
         println!("✓ file {:?} loaded", FILENAME);
     }
-    // Catch errors
+    // catch parsing errors
     let compute_program = match get_transformed_program(content) {
         Ok(content) => content,
         Err(line) => {
@@ -53,7 +53,15 @@ fn main() {
         println!("\n----------------------------------------------");
         println!("                    RUNTIME                    \n\n╖");
     }
-    run_program(compute_program, flags);
+    // catch runtime error : error already printed, now need to close and return error code
+    match run_program(compute_program, flags) {
+        Ok(()) => (),
+        Err(err_code) => {
+            eprintln!("Error code : {}", err_code);
+            return;
+        }
+    };
+    // end of the program : if we are here, everything went well
     if DEBUG {
         println!("╜\n----------------------------------------------");
         println!(" Program {:?} finished without error ", FILENAME)
@@ -65,7 +73,7 @@ fn main() {
 // Memory management
 pub mod mem;
 
-fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
+fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) -> Result<(), i32> {
     let mut prog_line: usize = 0;
     let mut iteration = 0;
     let max_line = program.len();
@@ -78,7 +86,7 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
             eprintln!("{} iterations, closing the process", iteration);
             exit(1)
         }
-        let result = compute(&program[prog_line], &flags, prog_line, memory);
+        let result = compute(&program[prog_line], &flags, prog_line, memory)?;
         prog_line = result.0;
         memory = result.1;
         if DEBUG {
@@ -93,17 +101,17 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) {
         }
 
         if prog_line >= max_line {
-            break;
+            return Ok(());
         }
     }
 }
 
 fn compute(
-    line: &Vec<String>,
+    line: &[String],
     flags: &(Vec<String>, Vec<i32>),
     line_number: usize,
     memory: mem::Memory,
-) -> (usize, mem::Memory) {
+) -> Result<(usize, mem::Memory), i32> {
     if DEBUG {
         if line.len() == 2 {
             println!(
@@ -136,22 +144,22 @@ fn compute(
     };
     match line[0].as_str() {
         // Two operands needed :
-        "var" => instruction::var(line_number, op1, op2, memory),
-        "set" => instruction::set(line_number, op1, op2, memory),
-        "add" => instruction::add(line_number, op1, op2, memory),
-        "sub" => instruction::sub(line_number, op1, op2, memory),
-        "mul" => instruction::mul(line_number, op1, op2, memory),
-        "div" => instruction::div(line_number, op1, op2, memory),
-        "rst" => instruction::rst(line_number, op1, op2, memory),
-        "jmp" => instruction::nll(line_number, memory),
-        "jne" => instruction::nll(line_number, memory),
-        "ctp" => instruction::nll(line_number, memory),
+        "var" => Ok(instruction::var(line_number, op1, op2, memory)),
+        "set" => Ok(instruction::set(line_number, op1, op2, memory)),
+        "add" => Ok(instruction::add(line_number, op1, op2, memory)),
+        "mul" => Ok(instruction::mul(line_number, op1, op2, memory)),
+        "sub" => Ok(instruction::sub(line_number, op1, op2, memory)),
+        "div" => Ok(instruction::div(line_number, op1, op2, memory)),
+        "rst" => Ok(instruction::rst(line_number, op1, op2, memory)),
+        "jmp" => Ok(instruction::nll(line_number, memory)),
+        "jne" => Ok(instruction::nll(line_number, memory)),
+        "ctp" => Ok(instruction::nll(line_number, memory)),
         // One operand needed :
-        "ret" => instruction::nll(line_number, memory),
-        "flg" => instruction::nll(line_number, memory),
-        "gto" => instruction::gto(line_number, op1, flags, memory),
-        "nll" => instruction::nll(line_number, memory),
-        "prt" => instruction::nll(line_number, memory),
+        "ret" => Ok(instruction::nll(line_number, memory)),
+        "flg" => Ok(instruction::nll(line_number, memory)),
+        "gto" => Ok(instruction::gto(line_number, op1, flags, memory)),
+        "nll" => Ok(instruction::nll(line_number, memory)),
+        "prt" => Ok(instruction::nll(line_number, memory)),
         _ => {
             eprintln!(
                 "Error : unexpected instruction {} line {}",
