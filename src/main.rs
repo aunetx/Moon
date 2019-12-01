@@ -13,6 +13,11 @@ const MAX_ITERATIONS: i32 = 1_0;
 // ! This way, functions acting on mem will be epured, faster and less bugued
 // !
 // ! This is a deep answer to the problem of duplicated variables with instruction `var`
+// !
+// ! Also, we will do a better catching of errors : they will get back to the source
+// ! so the program does not use std::process::exit(1) (that is not good)
+// !
+// ! We will also change much `String` types to `&str`
 
 fn main() {
     if DEBUG {
@@ -31,7 +36,7 @@ fn main() {
         println!("✓ file {:?} loaded", FILENAME);
     }
     // catch parsing errors
-    let compute_program = match get_transformed_program(content) {
+    let compute_program : Vec<Vec<&str>> = match get_transformed_program(&content[..]) {
         Ok(content) => content,
         Err(line) => {
             eprintln!("Error : incorrect syntax line {}", line);
@@ -53,7 +58,8 @@ fn main() {
         println!("\n----------------------------------------------");
         println!("                    RUNTIME                    \n\n╖");
     }
-    // catch runtime error : error already printed, now need to close and return error code
+    // catch runtime error : if error, already printed : now need to close and return error code
+    // TODO: returning to the OS the error code
     match run_program(compute_program, flags) {
         Ok(()) => (),
         Err(err_code) => {
@@ -73,7 +79,7 @@ fn main() {
 // Memory management
 pub mod mem;
 
-fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) -> Result<(), i32> {
+fn run_program(program: Vec<Vec<&str>>, flags: (Vec<&str>, Vec<i32>)) -> Result<(), i32> {
     let mut prog_line: usize = 0;
     let mut iteration = 0;
     let max_line = program.len();
@@ -107,8 +113,8 @@ fn run_program(program: Vec<Vec<String>>, flags: (Vec<String>, Vec<i32>)) -> Res
 }
 
 fn compute(
-    line: &[String],
-    flags: &(Vec<String>, Vec<i32>),
+    line: &[&str],
+    flags: &(Vec<&str>, Vec<i32>),
     line_number: usize,
     memory: mem::Memory,
 ) -> Result<(usize, mem::Memory), i32> {
@@ -126,11 +132,11 @@ fn compute(
         }
     }
 
-    //      Matching instruction and executing corresponding function
-    let op1 = line[1].clone();
-    // Check wether operand 2 exists
+    // matching instruction and executing corresponding function
+    let op1 = line[1].clone().to_string();
+    // check wether operand 2 exists
     let (op2, _one_op) = if line.len() == 3 {
-        (line[2].clone(), false)
+        (line[2].clone().to_string(), false)
     } else if line[0] == "ret"
         || line[0] == "flg"
         || line[0] == "gto"
@@ -142,8 +148,8 @@ fn compute(
         eprintln!("Error : missing second operand line {}", line_number);
         exit(1)
     };
-    match line[0].as_str() {
-        // Two operands needed :
+    match line[0] {
+        // two operands needed :
         "var" => Ok(instruction::var(line_number, op1, op2, memory)),
         "set" => Ok(instruction::set(line_number, op1, op2, memory)),
         "add" => Ok(instruction::add(line_number, op1, op2, memory)),
@@ -154,7 +160,7 @@ fn compute(
         "jmp" => Ok(instruction::nll(line_number, memory)),
         "jne" => Ok(instruction::nll(line_number, memory)),
         "ctp" => Ok(instruction::nll(line_number, memory)),
-        // One operand needed :
+        // one operand needed :
         "ret" => Ok(instruction::nll(line_number, memory)),
         "flg" => Ok(instruction::nll(line_number, memory)),
         "gto" => Ok(instruction::gto(line_number, op1, flags, memory)),
@@ -186,37 +192,37 @@ fn open_file(file_name: &str) -> io::Result<String> {
 }
 
 // * Give us back an the splitted program with an array of lines like : [[ins, op1, op2], [ins, op1, op2], [ins, op1, op2], ...]
-fn get_transformed_program(content: String) -> Result<Vec<Vec<String>>, i32> {
+fn get_transformed_program(content: &'static str) -> Result<Vec<Vec<&'static str>>, i32> {
     let program: Vec<&str> = content.lines().collect();
-    let mut compute_program: Vec<Vec<String>> = Vec::new();
+    let mut compute_program: Vec<Vec<&str>> = Vec::new();
     let mut line_number = 0;
     for line in program {
         line_number += 1;
-        let str_line: String = line.to_string();
-        let line = get_transformed_line(str_line, line_number)?;
+        let line = get_transformed_line(line, line_number)?;
         compute_program.push(line);
     }
     Ok(compute_program)
 }
 
 // * Give us back an array of instructions like : [instruction, operand1, operand2] for a given program line
-fn get_transformed_line(line: String, line_number: i32) -> Result<Vec<String>, i32> {
+fn get_transformed_line(line: &'static str, line_number: i32) -> Result<Vec<&'static str>, i32> {
     // removing chars that we don't need and replacing unused lines with 'nll:nll'
-    let mut line = line.replace(" ", "").replace("\n", "");
+    // ! NEED TO REPLACE ' ' with '' and '\n' with ''
+    let mut line = line.replace(' ', "").as_str();
     if line.is_empty() {
-        line = String::from("nll:nll");
+        line = "nll:nll";
     }
     // splitting instruction / operands
     let splitted: Vec<&str> = line.split(':').collect();
 
-    let mut trans_line: Vec<String> = Vec::new();
+    let mut trans_line: Vec<&str> = Vec::new();
     // verifying that there is not too much separators
     if splitted.len() != 2 || splitted[0].is_empty() || splitted[1].is_empty() {
         // Err! incorrect syntax line [return]
         Err(line_number)
     } else {
         // Instruction :
-        trans_line.push(splitted[0].to_string());
+        trans_line.push(splitted[0]);
         let splitted: Vec<&str> = splitted[1].split(',').collect();
 
         // Operand 1 :
@@ -224,24 +230,25 @@ fn get_transformed_line(line: String, line_number: i32) -> Result<Vec<String>, i
             // Err! incorrect syntax line [return]
             Err(line_number)
         } else {
-            trans_line.push(splitted[0].to_string());
+            trans_line.push(splitted[0]);
 
             // Operand 2 :
             if splitted.len() == 2 {
-                trans_line.push(splitted[1].to_string());
+                trans_line.push(splitted[1]);
             }
             Ok(trans_line)
         }
     }
 }
 
-fn get_flags(program: &Vec<Vec<String>>) -> (Vec<String>, Vec<i32>) {
-    let mut flags_names: Vec<String> = Vec::new();
+// * Give us back a tuple of two array representing flags in the program
+fn get_flags(program: &'static Vec<Vec<&str>>) -> (Vec<&'static str>, Vec<i32>) {
+    let mut flags_names: Vec<&'static str> = Vec::new();
     let mut flags_locat: Vec<i32> = Vec::new();
     let mut lnb = 0;
     for line in program {
         if line[0] == "flg" {
-            flags_names.push(line[1].clone());
+            flags_names.push(line[1]);
             flags_locat.push(lnb);
         }
         lnb += 1;

@@ -233,10 +233,10 @@ pub fn rst(
 pub fn gto(
     line_number: usize,
     name: String,
-    flags: &(Vec<String>, Vec<i32>),
+    flags: &(Vec<&str>, Vec<i32>),
     memory: mem::Memory,
 ) -> (usize, mem::Memory) {
-    let new_line = match flags.0.binary_search(&name) {
+    let new_line = match flags.0.binary_search(&name.as_str()) {
         Ok(index) => index,
         Err(_) => match name.parse::<usize>() {
             Ok(value) => value,

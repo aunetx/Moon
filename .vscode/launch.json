@@ -11,7 +11,7 @@
             "sourceLanguages": [
                 "rust"
             ]
-        },
+        }
         {
             "type": "gdb",
             "name": "GDB-debug",
